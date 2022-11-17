@@ -16,10 +16,11 @@ bool operator>(const Event &e1, const Event &e2) {
     return e1.eventTime > e2.eventTime;
 }
 
-Event::Event(EventType eventType, double eventTime, int location) {
+Event::Event(EventType eventType, double eventTime, int location, long id) {
     this->eventTime = eventTime;
     this->eventType = eventType;
-    this->eventLocation = eventLocation;
+    this->eventLocation = location;
+    this->customerID = id;
 }
 
 EventType Event::getEventType() const {
@@ -40,13 +41,13 @@ double Event::setEventTime(double eventTime) {
     return Event::eventTime;
 }
 
-long Event::getEventId() const {
-    return eventID;
+long Event::getCustomerId() const {
+    return customerID;
 }
 
-long Event::setEventId(long eventId) {
-    eventID = eventId;
-    return Event::eventID;
+long Event::setCustomerId(long customerID) {
+    Event::customerID = customerID;
+    return Event::customerID;
 }
 
 int Event::getEventLocation() const {

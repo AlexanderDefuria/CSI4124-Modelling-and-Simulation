@@ -61,7 +61,7 @@ void initialization() {
     for (int i = 0; i < 4; i++)
         ServerDistributions[i] = normal_distribution<>(MeanServiceTime[i], SIGMA[i]);
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 50; i++) {
         Event firstEvent(arrival, normal(ArrivalDistribution), 0, TotalCustomers);
         TotalCustomers++;
         FutureEventList.push(firstEvent);
@@ -126,8 +126,10 @@ void processDeparture(Event event) {
     switch (event.getEventLocation()) {
         case 0:
             FutureEventList.push(Event(arrival, Clock, 1, event.getCustomerId()));
+            break;
         case 1:
             FutureEventList.push(Event(arrival, Clock, 2, event.getCustomerId()));
+            break;
         default:
             break;
     }
@@ -145,6 +147,8 @@ double normal(normal_distribution<> normal) {
 }
 
 void reportGeneration() {
+    for (int i = 0; i < 4; i++)
+        cout << "Server " << i << " Utilization: " << TotalBusy[i] << ", " << 100 * (TotalBusy[i] / Clock) << "%" << endl;
 
 }
 

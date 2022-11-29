@@ -15,15 +15,19 @@ class Event {
 protected:
     EventType eventType;
     double eventTime;
+    double serviceTime;
     long customerID;
     long eventLocation;
 
 public:
     Event()= default;
     Event(EventType eventType, double eventTime, int eventQueue, long id);
+    Event(EventType eventType, double eventTime, double serviceTime, int eventQueue, long id);
 
     double getEventTime() const;
     double setEventTime(double eventTime);
+    double getServiceTime() const;
+    double setServiceTime(double eventTime);
     EventType getEventType() const;
     EventType setEventType(EventType eventType);
     long getCustomerId() const;

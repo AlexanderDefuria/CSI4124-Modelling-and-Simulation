@@ -5,16 +5,16 @@
 #include <iomanip>
 #include "Event.h"
 
-#define SERVER_COUNT 4;
-
 using namespace std;
 
 void initialization();
 void processArrival(Event event);
 void scheduleDeparture(Event event, int currentServer);
 void processDeparture(Event event);
+void processQueueEntry(Event event, int queue);
 void reportGeneration();
 double normal(normal_distribution<> normal);
+
 
 double Clock, MeanInterArrivalTime, SIGMAInterArrivalTime, SumResponseTime, TotalBusy[4],
     SIGMA[4], MeanServiceTime[4], LastEventTime;
@@ -76,40 +76,40 @@ void initialization() {
 // Push the departure event into the future
 void scheduleDeparture(Event event, int currentServer) {
     double ServiceTime = normal(ServerDistributions[currentServer]);
-    Event depart = Event(departure, Clock+ServiceTime, currentServer, event.getCustomerId());
+    TotalBusy[currentServer] += ServiceTime;
+    Event depart = Event(departure, Clock+ServiceTime, ServiceTime, currentServer, event.getCustomerId());
     FutureEventList.push(depart);
     NumberInService[currentServer] = 1;
 }
 
 void processArrival(Event event) {
-    // Update the total busy time for each server.
-    for (int i = 0; i < 4; i++) {
-        if (NumberInService[i] == 1) {
-            TotalBusy[i] += Clock - LastEventTime;
-        }
-    }
+    bool queue = false;
 
     // Determine where the customer is coming from and going to
-    switch (event.getEventLocation()) {
+    int location = event.getEventLocation();
+
+    switch (location) {
         case 0:
             if (NumberInService[0] == 0)
                 scheduleDeparture(event, 0);
-            else if (NumberInService[1] == 0)
+            else if (NumberInService[1] == 0) {
+                event.setEventLocation(1);
                 scheduleDeparture(event, 1);
-            else
-                Queues[0].push(event);
+            }
+            else {
+                queue = true;
+                processQueueEntry(event, location);
+            }
             break;
         case 1:
-            if (NumberInService[2] == 0)
-                scheduleDeparture(event, 2);
-            else
-                Queues[1].push(event);
-            break;
         case 2:
-            if (NumberInService[3] == 0)
-                scheduleDeparture(event, 3);
-            else
-                Queues[2].push(event);
+            if (NumberInService[location + 1] == 0) {
+                scheduleDeparture(event, location + 1);
+            }
+            else {
+                queue = true;
+                processQueueEntry(event, location);
+            }
             break;
         default:
             // At start of system
@@ -120,9 +120,16 @@ void processArrival(Event event) {
     }
 
     LastEventTime = Clock;
-    //if (event.getCustomerId() == 5)
 
-    cout << "Time: " << Clock <<" :\t customer " << event.getCustomerId() << " arrived in queue " << event.getEventLocation() << endl;
+
+    if (!queue)
+        cout << "Time: " << Clock <<" :\t customer " << event.getCustomerId() << " arrived at server " << event.getEventLocation() << endl;
+}
+
+void processQueueEntry(Event event, int queue) {
+    event.setEventLocation(queue);
+    Queues[queue].push(event);
+    cout << "Time: " << Clock <<" :\t customer " << event.getCustomerId() << " arrived at queue " << event.getEventLocation() << endl;
 }
 
 void processDeparture(Event event) {
@@ -160,9 +167,7 @@ void processDeparture(Event event) {
             break;
     }
 
-//  if (event.getCustomerId() == 5)
-    cout << "Time: " << Clock <<" :\t customer " << event.getCustomerId() << " finished from server " << event.getEventLocation() << endl;
-
+    cout << "Time: " << Clock <<" :\t customer " << event.getCustomerId() << " finished from server " << event.getEventLocation() << " after " << event.getServiceTime()  << endl;
 }
 
 double normal(normal_distribution<> normal) {
@@ -174,6 +179,5 @@ double normal(normal_distribution<> normal) {
 void reportGeneration() {
     for (int i = 0; i < 4; i++)
         cout << "Server " << i << " Utilization: " << TotalBusy[i] << ", " << 100 * (TotalBusy[i] / Clock) << "%" << endl;
-
 }
 

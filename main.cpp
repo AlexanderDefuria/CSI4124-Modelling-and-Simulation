@@ -16,10 +16,10 @@ void reportGeneration();
 double normal(normal_distribution<> normal);
 
 
-double Clock, MeanInterArrivalTime, SIGMAInterArrivalTime, SumResponseTime, TotalBusy[4],
-    SIGMA[4], MeanServiceTime[4], LastEventTime;
-long NumberOfCustomers, QueueLength[3], NumberInService[4],
-    TotalCustomers, NumberOfDepartures[4], LongService;
+double Clock, MeanInterArrivalTime, SIGMAInterArrivalTime, TotalBusy[4],
+    SIGMA[4], MeanServiceTime[4];
+long QueueLength[3], NumberInService[4],
+    TotalCustomers, NumberOfDepartures[4];
 
 normal_distribution<> ArrivalDistribution; // Server performance generators
 normal_distribution<> ServerDistributions[4]; // Server performance generators
@@ -58,7 +58,6 @@ void initialization() {
     MeanServiceTime[2] = 8.844;
     MeanServiceTime[3] = 10.204;
     Clock = 0.0;
-    SumResponseTime = 0.0;
     ArrivalDistribution = normal_distribution<>(MeanInterArrivalTime, SIGMAInterArrivalTime);
 
     for (int i = 0; i < 4; i++)
@@ -104,6 +103,7 @@ void processArrival(Event event) {
         case 1:
         case 2:
             if (NumberInService[location + 1] == 0) {
+                event.setEventLocation(location+1);
                 scheduleDeparture(event, location + 1);
             }
             else {
@@ -119,7 +119,6 @@ void processArrival(Event event) {
             scheduleDeparture(event, 0);
     }
 
-    LastEventTime = Clock;
 
 
     if (!queue)

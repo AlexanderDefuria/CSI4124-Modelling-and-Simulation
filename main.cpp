@@ -149,20 +149,11 @@ void processDeparture(Event event) {
     // Which Server?
     switch (location) {
         case 0:
+        case 1:
             // Put the event in the queue
             FutureEventList.push(Event(arrival, Clock, 1, event.getCustomerId()));
 
             // Get Next Customer For This Server from appropriate queue and process arrival
-            if (!Queues[0].empty()) {
-                Event evt = Queues[0].front();
-                Queues[0].pop();
-                TimeInQueue[0] += Clock - evt.getEventTime();
-                TimeWaiting[0][evt.getCustomerId()] += Clock - evt.getEventTime();
-                processArrival(evt);
-            }
-            break;
-        case 1:
-            FutureEventList.push(Event(arrival, Clock, 1, event.getCustomerId()));
             if (!Queues[0].empty()) {
                 Event evt = Queues[0].front();
                 Queues[0].pop();

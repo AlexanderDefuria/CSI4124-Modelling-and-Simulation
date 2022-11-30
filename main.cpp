@@ -18,14 +18,14 @@ double normal(normal_distribution<> normal);
 
 const int TotalCustomers = 5000;
 double Clock, MeanInterArrivalTime, SIGMAInterArrivalTime, TotalBusy[4],
-        SIGMA[4], MeanServiceTime[4], TimeInQueue[3], TimeWaiting[3][TotalCustomers],
+        SIGMA[4], MeanServiceTime[4], TimeInQueue[2], TimeWaiting[2][TotalCustomers],
         TimeBeingServed[4][TotalCustomers], ArrivalTime[TotalCustomers], InterArrivalTime[TotalCustomers];
-long QueueLength[3], NumberInService[4], NumberOfDepartures[4];
+long QueueLength[2], NumberInService[4], NumberOfDepartures[4];
 
 normal_distribution<> ArrivalDistribution; // Server performance generators
 normal_distribution<> ServerDistributions[4]; // Server performance generators
 priority_queue<Event, vector<Event>, greater<>> FutureEventList; // Future Events to process.
-queue<Event> Queues[3]; // Customer in queues.
+queue<Event> Queues[2]; // Customer in queues.
 ofstream textoutfile;
 
 int main() {
@@ -103,18 +103,19 @@ void processArrival(Event event) {
             }
             else {
                 queue = true;
-                processQueueEntry(event, location);
+                processQueueEntry(event, 0);
             }
             break;
         case 1:
-        case 2:
-            if (NumberInService[location + 1] == 0) {
-                event.setEventLocation(location+1);
-                scheduleDeparture(event, location + 1);
-            }
-            else {
+            if (NumberInService[2] == 0) {
+                event.setEventLocation(2);
+                scheduleDeparture(event, 2);
+            } else if (NumberInService[3] == 0) {
+                event.setEventLocation(3);
+                scheduleDeparture(event, 3);
+            } else {
                 queue = true;
-                processQueueEntry(event, location);
+                processQueueEntry(event, 1);
             }
             break;
         default:
@@ -144,17 +145,8 @@ void processDeparture(Event event) {
 
     switch (location) {
         case 0:
-            FutureEventList.push(Event(arrival, Clock, 1, event.getCustomerId()));
-            if (!Queues[0].empty()) {
-                Event evt = Queues[0].front();
-                Queues[0].pop();
-                TimeInQueue[0] += Clock - evt.getEventTime();
-                TimeWaiting[0][evt.getCustomerId()] += Clock - evt.getEventTime();
-                processArrival(evt);
-            }
-            break;
         case 1:
-            FutureEventList.push(Event(arrival, Clock, 2, event.getCustomerId()));
+            FutureEventList.push(Event(arrival, Clock, 1, event.getCustomerId()));
             if (!Queues[0].empty()) {
                 Event evt = Queues[0].front();
                 Queues[0].pop();
@@ -165,11 +157,11 @@ void processDeparture(Event event) {
             break;
         case 2:
         case 3:
-            if (!Queues[location - 1].empty()) {
-                Event evt = Queues[location - 1].front();
-                Queues[location - 1].pop();
-                TimeInQueue[location - 1] += Clock - evt.getEventTime();
-                TimeWaiting[location - 1][evt.getCustomerId()] += Clock - evt.getEventTime();
+            if (!Queues[1].empty()) {
+                Event evt = Queues[1].front();
+                Queues[1].pop();
+                TimeInQueue[1] += Clock - evt.getEventTime();
+                TimeWaiting[1][evt.getCustomerId()] += Clock - evt.getEventTime();
                 processArrival(evt);
             }
         default:
@@ -204,7 +196,7 @@ void reportGeneration() {
                     << endl;
 
     double totalWaitingTime = 0;
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 2; i++) {
         textoutfile << "Total Time In Queue " << i << ": \t\t" << TimeInQueue[i] << endl;
         totalWaitingTime += TimeInQueue[i];
     }
@@ -214,11 +206,11 @@ void reportGeneration() {
 
     ofstream outfile;
     outfile.open("out.csv");
-    outfile << "Customer, Arrival Time, InterArrival Time, Queue 0 Waiting Time, Queue 1 Waiting Time, Queue 2 Waiting Time, ";
+    outfile << "Customer, Arrival Time, InterArrival Time, Queue 0 Waiting Time, Queue 1 Waiting Time, ";
     outfile << "Server 0 Time, Server 1 Time, Server 2 Time, Server 3 Time, ";
     outfile << endl;
     for (int i = 0; i < TotalCustomers; i++) {
-        outfile << i << "," << ArrivalTime[i] << "," << InterArrivalTime[i] << "," << TimeWaiting[0][i] << "," << TimeWaiting[1][i] << "," << TimeWaiting[2][i] << ",";
+        outfile << i << "," << ArrivalTime[i] << "," << InterArrivalTime[i] << "," << TimeWaiting[0][i] << "," << TimeWaiting[1][i] << ",";
         outfile << TimeBeingServed[0][i] << "," << TimeBeingServed[1][i] << "," << TimeBeingServed[2][i] << "," << TimeBeingServed[3][i] << ",";
         outfile << endl;
     }

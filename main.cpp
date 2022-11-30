@@ -198,7 +198,10 @@ T sum_array(T* array, int j) {
 void reportGeneration() {
     for (int i = 0; i < 4; i++)
         textoutfile << "Server " << i << " Utilization: " << TotalBusy[i] << ", " << 100 * (TotalBusy[i] / Clock) << "%"
-             << endl;
+                    << endl;
+    for (int i = 0; i < 4; i++)
+        textoutfile << "Server " << i << " Customers Served: " << NumberOfDepartures[i] << ", " << 100 * ((float)NumberOfDepartures[i] / TotalCustomers) << "%"
+                    << endl;
 
     double totalWaitingTime = 0;
     for (int i = 0; i < 3; i++) {

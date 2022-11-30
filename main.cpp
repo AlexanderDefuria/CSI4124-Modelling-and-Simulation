@@ -57,8 +57,8 @@ void initialization() {
     SIGMA[1] = 2.583;
     SIGMA[2] = 3.135;
     SIGMA[3] = 5.192;
-    MeanServiceTime[0] = 5.056 * 0.5;
-    MeanServiceTime[1] = 4.740 * 0.75;
+    MeanServiceTime[0] = 5.056;
+    MeanServiceTime[1] = 4.740;
     MeanServiceTime[2] = 8.844;
     MeanServiceTime[3] = 10.204;
     Clock = 0.0;

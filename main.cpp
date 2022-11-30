@@ -20,7 +20,7 @@ const int TotalCustomers = 5000;
 double Clock, MeanInterArrivalTime, SIGMAInterArrivalTime, TotalBusy[4],
         SIGMA[4], MeanServiceTime[4], TimeInQueue[3], TimeWaiting[3][TotalCustomers],
         TimeBeingServed[4][TotalCustomers], ArrivalTime[TotalCustomers], InterArrivalTime[TotalCustomers];
-long QueueLength[3], NumberInService[4], NumberOfDepartures[4];
+int NumberInService[4], NumberOfDepartures[4];
 
 normal_distribution<> ArrivalDistribution; // Server performance generators
 normal_distribution<> ServerDistributions[4]; // Server performance generators
@@ -78,6 +78,7 @@ void initialization() {
 }
 
 // Push the departure event into the future
+// Depart from 'currentServer'
 void scheduleDeparture(Event event, int currentServer) {
     double ServiceTime = normal(ServerDistributions[currentServer]);
     TotalBusy[currentServer] += ServiceTime;
@@ -88,11 +89,13 @@ void scheduleDeparture(Event event, int currentServer) {
 }
 
 void processArrival(Event event) {
-    bool queue = false;
+    // Process arrival in a queue
 
     // Determine where the customer is coming from and going to
     int location = event.getEventLocation();
+    bool queue = false;
 
+    // Which Queue
     switch (location) {
         case 0:
             if (NumberInService[0] == 0)
@@ -121,7 +124,6 @@ void processArrival(Event event) {
             // At start of system
             event.setEventLocation(0);
             Queues[0].push(event);
-            QueueLength[0]++;
             scheduleDeparture(event, 0);
     }
 
@@ -130,21 +132,26 @@ void processArrival(Event event) {
 }
 
 void processQueueEntry(Event event, int queue) {
+    // Put customer into queue
     event.setEventLocation(queue);
     Queues[queue].push(event);
     textoutfile << "Time: " << Clock <<" :\t customer " << event.getCustomerId() << " arrived at queue " << event.getEventLocation() << endl;
 }
 
 void processDeparture(Event event) {
+    // Process departure from a server
+
     NumberInService[event.getEventLocation()]--;
-
     NumberOfDepartures[event.getEventLocation()]++;
-
     int location = event.getEventLocation();
 
+    // Which Server?
     switch (location) {
         case 0:
+            // Put the event in the queue
             FutureEventList.push(Event(arrival, Clock, 1, event.getCustomerId()));
+
+            // Get Next Customer For This Server from appropriate queue and process arrival
             if (!Queues[0].empty()) {
                 Event evt = Queues[0].front();
                 Queues[0].pop();
@@ -185,6 +192,7 @@ double normal(normal_distribution<> normal) {
     return abs(normal(gen));
 }
 
+// Sum array for use in reportGeneration (generic)
 template<class T>
 T sum_array(T* array, int j) {
     T sum;
